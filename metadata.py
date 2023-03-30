@@ -4,7 +4,7 @@ from transformers import BertTokenizer, BertForQuestionAnswering
 
 # Define the text and the questions
 #text = "A total of 11 people lost their lives while returning to Madhya Pradesh after offering prayers at Ramdevra temple in Rajasthan when their jeep reportedly collided with another vehicle in Nagaur’s Shribalaji town on Tuesday morning at around 7.45 a.m. Eight people died on the spot while 3 others took their last breath on their way to Nokha hospital. The deceased were from Ujjain and Dewas districts of Madhya Pradesh. Police officials are investigating reasons of accident as the injured were unable to share details. Rajasthan Chief Minister Ashok Gehlot has expressed his condolences for the bereaved families. “It is heart wrenching to know that 11 people passed away in an accident. My condolences to the bereaved families. May God give them strength to bear the loss.”"
-questions = ["How many casualties were there in the accident?", "Where did the accident happen?", "When did the accident happen?", "What type of vehicles were involved in the accident?","What are the names of the casualties?","What are some information about the casulaties?","What are some information about the accident location?"]
+questions = ["How many casualties were there in the accident?", "Which state did the accident happen?","Which city did the accident happen?","Which district did the accident happen?" , "What date did the accident happen?", "What type of vehicles were involved in the accident?","What are the names of the casualties?","What are some information about the casulaties?","What are some information about the accident location?"]
 
 # Load the tokenizer and the model
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')

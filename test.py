@@ -12,7 +12,7 @@ trunc_type = 'post'
 tokenizer = Tokenizer()
 model = load_model('accidents_lstm_2.h5')
 
-image_model = load_model('Model.h5')
+# image_model = load_model('Model.h5')
 
 def getRAPredictionFromTitle(title):
     lst = []
@@ -23,7 +23,7 @@ def getRAPredictionFromTitle(title):
     return predicted_label_seq[0]
 
 
-def getRAPredictionFromImage (images):
-    predictions = image_model.predict(images)
-    return predictions
+# def getRAPredictionFromImage (images):
+#     predictions = image_model.predict(images)
+#     return predictions
 print (getRAPredictionFromTitle('I am Debargha'))
