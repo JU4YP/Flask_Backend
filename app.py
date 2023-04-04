@@ -8,6 +8,7 @@ import numpy as np
 from PIL import Image
 import json
 from bson import json_util
+from datetime import datetime,timedelta
 import metadata
 
 app = Flask(__name__)
@@ -30,6 +31,9 @@ def getAllData():
     db = cluster["metadata"]
     collection = db["roadaccidents"]
     docs=list(collection.find({}))
+    dateobj=datetime.strptime(docs[0]['date'],"%Y-%m-%dT%H:%M:%S")
+    dateobj=dateobj-timedelta(days=1)
+    print(dateobj.weekday())
     return {"result":json.dumps(docs, default=json_util.default)}
 
 @app.route('/getRAPrediction', methods = ['GET'])
@@ -97,7 +101,7 @@ def findData():
     date2=request.form.get("date2")
     location=request.form.get("location")
     print(date1,date2,location)
-    data=list(collection.find({"location":location,"date":{"$gte":date1,"$lte":date2}}))
+    data=list(collection.find({"city":location,"date":{"$gte":date1,"$lte":date2}}))
     return {"result":json.dumps(data, default=json_util.default)}
 
 @app.route('/extraction',methods=['POST'])

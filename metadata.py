@@ -2,19 +2,21 @@
 import torch
 from transformers import BertTokenizer, BertForQuestionAnswering
 
+import helper
+
 # Define the text and the questions
 #text = "A total of 11 people lost their lives while returning to Madhya Pradesh after offering prayers at Ramdevra temple in Rajasthan when their jeep reportedly collided with another vehicle in Nagaur’s Shribalaji town on Tuesday morning at around 7.45 a.m. Eight people died on the spot while 3 others took their last breath on their way to Nokha hospital. The deceased were from Ujjain and Dewas districts of Madhya Pradesh. Police officials are investigating reasons of accident as the injured were unable to share details. Rajasthan Chief Minister Ashok Gehlot has expressed his condolences for the bereaved families. “It is heart wrenching to know that 11 people passed away in an accident. My condolences to the bereaved families. May God give them strength to bear the loss.”"
-questions = ["How many casualties were there in the accident?", "Which state did the accident happen?","Which city did the accident happen?","Which district did the accident happen?" , "What date did the accident happen?", "What type of vehicles were involved in the accident?","What are the names of the casualties?","What are some information about the casulaties?","What are some information about the accident location?"]
-
+questions = ["How many casualties are there in the accident?", "Which state did the accident happen?","Which city did the accident happen?","Which district did the accident happen?" , "What date did the accident happen?", "What type of vehicles were involved in the accident?","What are the names of the casualties?","What are some information about the casulaties?","What are some information about the accident location?"]
+keys = ["dead","injured","state","city","district","date","vehicles","names","Info on casulaties","Info on location"]
 # Load the tokenizer and the model
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 model = BertForQuestionAnswering.from_pretrained('bert-large-uncased-whole-word-masking-finetuned-squad')
 
-def extract(text):
+def extract(text,date):
 # Loop through each question
+    ind=0
     result={}
     for question in questions:
-
         # Tokenize the input
         input_ids = tokenizer.encode(question, text)
         tokens = tokenizer.convert_ids_to_tokens(input_ids)
@@ -45,5 +47,21 @@ def extract(text):
         # Print the question and the answer
         print(question)
         print(answer)
-        result[question]=answer
+        if(keys[ind]=="dead"):
+            data=helper.casualty_checker(answer)
+            if(len(data)>1):
+                result[keys[0]]=data[0]
+                result[keys[1]]=data[1]
+                ind+=1
+        elif(keys[ind]=="date"):
+            result[keys[ind]]=helper.getDate(answer,date)
+        elif(keys[ind]=="names"):
+            result[keys[ind]]=helper.persons(answer)
+        else:
+            result[keys[ind]]=answer.lower()
+        # result[question]=answer
+        ind+=1
     return result
+
+
+

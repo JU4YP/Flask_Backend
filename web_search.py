@@ -3,6 +3,7 @@ from pprint import pprint
 import requests
 from datetime import datetime
 import pymongo
+import metadata
 
 from newspaper import Article
 
@@ -19,11 +20,11 @@ nlp = spacy.load('en_core_web_trf')
 
 class SearchAPI:
 	def __init__(self,search_query):
-		self.myclient = pymongo.MongoClient("mongodb+srv://007Trishit:8Tu39xBo5OQZ0OsS@cluster0.cwz7qiq.mongodb.net/?retryWrites=true&w=majority")
+		self.myclient = pymongo.MongoClient("mongodb://Rishi:HDST12345@ac-fhuqmjw-shard-00-00.cwz7qiq.mongodb.net:27017,ac-fhuqmjw-shard-00-01.cwz7qiq.mongodb.net:27017,ac-fhuqmjw-shard-00-02.cwz7qiq.mongodb.net:27017/?ssl=true&replicaSet=atlas-i0sq4k-shard-0&authSource=admin&retryWrites=true&w=majority")
 		self.query = search_query
 		self.web_search_url = "https://contextualwebsearch-websearch-v1.p.rapidapi.com/api/Search/WebSearchAPI"
 		self.bing_search_url = "https://bing-news-search1.p.rapidapi.com/news/search"
-		self.google_search_url = "https://google-news.p.rapidapi.com/v1/search"
+		self.google_search_url = "https://google-news-api1.p.rapidapi.com/search"
 	def WebSearch(self):
 		querystring = {"q":self.query,"pageNumber":"1","pageSize":"100","autoCorrect":"true"}
 		headers = {
@@ -43,44 +44,42 @@ class SearchAPI:
 		response = requests.request("GET", 	self.bing_search_url, headers=headers, params=querystring)
 		return response.json()
 	def GoogleNewsSearch(self):
-		querystring = {"q":self.query,"lang":"en","country":"US"}
+		querystring = {"q":self.query,"language":"en"}
 
 		headers = {
-			"X-RapidAPI-Key": "65fe77868fmshbe3ee2d066d0354p1fc27ejsn668f405852c3",
-			"X-RapidAPI-Host": "google-news.p.rapidapi.com"
+			"X-RapidAPI-Key": "2dc2de0e57msh9ae5a4dedc6f01bp1cbbbfjsnb19f2f806d00",
+			"X-RapidAPI-Host": "google-news-api1.p.rapidapi.com"
 		}
 
 		response = requests.request("GET", self.google_search_url, headers=headers, params=querystring)
+		print(response)
 		return (response.json())
 
 def Summarizer(url):
   # Get the news article from web using url
   # https://indianexpress.com/article/explained/in-mistry-crash-tragedy-a-reminder-of-high-numbers-of-road-deaths-in-the-country-8131214/
   # https://indianexpress.com/article/cities/mumbai/mumbai-7-injured-in-freak-car-accident-8165019/
-  new_accident = Article(url)
-
-  # Do the necessary processings of a newspaper article (download, parse and apply nlp)
-  new_accident.build()
-
-  # Get different parameters from article
-  print('Report Date : ')
-  # print(new_accident.meta_data['og']['publish_date'])
-  print('\n\n----------\n\n')
-  print('Report Summary : ')
-  print(new_accident.summary)
-  print(new_accident.keywords)
-
-
-  doc = nlp(new_accident.text)
-
-  # Get the list of locations mentioned here
   location_list = []
-  for word in doc.ents:
-    print(word.text+" -> "+word.label_)
-    if(word.label_ == 'GPE' or word.label_ == 'FAC' or word.label_ == 'LOC'):
-      location_list.append(word.text)
+  try:
+    new_accident = Article(url)
 
-  # Print location list
+    # Do the necessary processings of a newspaper article (download, parse and apply nlp)
+    new_accident.build()
+
+    # Get different parameters from article
+    print(new_accident.keywords)
+
+
+    doc = nlp(new_accident.text)
+
+    # Get the list of locations mentioned here
+    for word in doc.ents:
+      if(word.label_ == 'GPE' or word.label_ == 'FAC' or word.label_ == 'LOC'):
+        location_list.append(word.text)
+
+    # Print location list4
+  except:
+      print("Error")
   return location_list
 
 def getKey(article,key):
@@ -110,28 +109,29 @@ def extractArticle(article):
   extract['date'] = getKey(article,'datePublished')
   extract['location']=Summarizer(extract['url'])
   extract['language'] = getKey(article,'language')
+  extract['metadata']=metadata.extract(extract['body'][:500],extract['date'])
   if('image' in article.keys()):
     extract['image'] = getKey(article['image'],'url') 
   return extract
 
 def extractBingArticle(article):
-    extract={}
-    extract['url'] = getKey(article,'url')
-    extract['title'] = getKey(article,'name')
-    extract['body'] = getKey(article,'description')
-    extract['date'] = getKey(article,'datePublished')
-    extract['location']=Summarizer(extract['url'])
-    if('image' in article.keys() and 'thumbnail' in article['image'].keys()):
-      extract['image'] = getKey(article['image']['thumbnail'],'contentUrl')
-    return extract
+  extract={}
+  extract['url'] = getKey(article,'url')
+  extract['title'] = getKey(article,'name')
+  extract['body'] = getKey(article,'description')
+  extract['date'] = getKey(article,'datePublished')
+  extract['location']=Summarizer(extract['url'])
+  if('image' in article.keys() and 'thumbnail' in article['image'].keys()):
+    extract['image'] = getKey(article['image']['thumbnail'],'contentUrl')
+  return extract
 
 def extractGoogleArticle(article):
-    extract={}
-    extract['url'] = getKey(article,'link')
-    extract['title'] = getKey(article,'title')
-    extract['date'] = chngDateTimeFormat(getKey(article,'published'))
-    extract['location']=Summarizer(extract['url'])
-    return extract
+  extract={}
+  extract['url'] = getKey(article,'link')
+  extract['title'] = getKey(article,'title')
+  extract['date'] = chngDateTimeFormat(getKey(article,'published'))
+  extract['location']=Summarizer(extract['url'])
+  return extract
 
 sapi=SearchAPI('West Bengal road accident')
 
@@ -150,9 +150,15 @@ sapi=SearchAPI('West Bengal road accident')
 #     print(extract)
 #     print()
 
-pushToDB([extractArticle(article) for article in sapi.WebSearch()['value']], sapi.myclient)
+article = sapi.GoogleNewsSearch()['articles'][0]
+extracted_article = extractArticle(article)
+print(extracted_article["metadata"])
 
-pushToDB([extractBingArticle(article) for article in sapi.BingSearch()['value']], sapi.myclient)
+pushToDB([extracted_article],sapi.myclient)
 
-pushToDB([extractGoogleArticle(article) for article in sapi.GoogleNewsSearch()['articles']], sapi.myclient)
+# pushToDB([extractArticle(article) for article in sapi.WebSearch()['value']], sapi.myclient)
+
+# pushToDB([extractBingArticle(article) for article in sapi.BingSearch()['value']], sapi.myclient)
+
+# pushToDB([extractGoogleArticle(article) for article in sapi.GoogleNewsSearch()['articles']], sapi.myclient)
 
