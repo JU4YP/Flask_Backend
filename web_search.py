@@ -67,7 +67,7 @@ def Summarizer(url):
     new_accident.build()
 
     # Get different parameters from article
-    print(new_accident.keywords)
+    # print(new_accident.text)
 
 
     doc = nlp(new_accident.text)
@@ -80,7 +80,7 @@ def Summarizer(url):
     # Print location list4
   except:
       print("Error")
-  return location_list
+  return new_accident.text
 
 def getKey(article,key):
   if (key in article.keys()):
@@ -89,7 +89,7 @@ def getKey(article,key):
     return ""
 
 def chngDateTimeFormat(dt_str: str):
-    from_format = "%a, %d %b %Y %H:%M:%S %Z"
+    from_format = "%Y-%m-%dT%H:%M:%S %Z"
     dt = datetime.strptime(dt_str, from_format)
     to_format = "%Y-%m-%dT%H:%M:%S"
     return dt.strftime(to_format)
@@ -105,9 +105,8 @@ def extractArticle(article):
   extract={}
   extract['url'] = getKey(article,'url')
   extract['title'] = getKey(article,'title')
-  extract['body'] = getKey(article,'body')
+  extract['body'] = Summarizer(extract['url'])
   extract['date'] = getKey(article,'datePublished')
-  extract['location']=Summarizer(extract['url'])
   extract['language'] = getKey(article,'language')
   extract['metadata']=metadata.extract(extract['body'][:500],extract['date'])
   if('image' in article.keys()):
@@ -118,9 +117,8 @@ def extractBingArticle(article):
   extract={}
   extract['url'] = getKey(article,'url')
   extract['title'] = getKey(article,'name')
-  extract['body'] = getKey(article,'description')
+  extract['body'] = Summarizer(extract['url'])
   extract['date'] = getKey(article,'datePublished')
-  extract['location']=Summarizer(extract['url'])
   if('image' in article.keys() and 'thumbnail' in article['image'].keys()):
     extract['image'] = getKey(article['image']['thumbnail'],'contentUrl')
   return extract
@@ -130,7 +128,8 @@ def extractGoogleArticle(article):
   extract['url'] = getKey(article,'link')
   extract['title'] = getKey(article,'title')
   extract['date'] = chngDateTimeFormat(getKey(article,'published'))
-  extract['location']=Summarizer(extract['url'])
+  extract['body']=Summarizer(extract['url'])
+  extract['metadata']=metadata.extract(extract['body'][:500],extract['date'])
   return extract
 
 sapi=SearchAPI('West Bengal road accident')
@@ -150,11 +149,12 @@ sapi=SearchAPI('West Bengal road accident')
 #     print(extract)
 #     print()
 
-article = sapi.GoogleNewsSearch()['articles'][0]
-extracted_article = extractArticle(article)
-print(extracted_article["metadata"])
+# article = sapi.GoogleNewsSearch()['news']['news'][0]
+# print(article)
+# extracted_article = extractGoogleArticle(article)
+# print(extracted_article["metadata"])
 
-pushToDB([extracted_article],sapi.myclient)
+# pushToDB([extracted_article],sapi.myclient)
 
 # pushToDB([extractArticle(article) for article in sapi.WebSearch()['value']], sapi.myclient)
 
@@ -162,3 +162,4 @@ pushToDB([extracted_article],sapi.myclient)
 
 # pushToDB([extractGoogleArticle(article) for article in sapi.GoogleNewsSearch()['articles']], sapi.myclient)
 
+chngDateTimeFormat("2023-11-21T12:23:52.001Z")

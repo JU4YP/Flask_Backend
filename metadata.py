@@ -9,7 +9,7 @@ import helper
 questions = ["How many casualties are there in the accident?", "Which state did the accident happen?","Which city did the accident happen?","Which district did the accident happen?" , "What date did the accident happen?", "What type of vehicles were involved in the accident?","What are the names of the casualties?","What are some information about the casulaties?","What are some information about the accident location?"]
 keys = ["dead","injured","state","city","district","date","vehicles","names","Info on casulaties","Info on location"]
 # Load the tokenizer and the model
-tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+tokenizer = BertTokenizer.from_pretrained('bert-large-uncased-whole-word-masking-finetuned-squad')
 model = BertForQuestionAnswering.from_pretrained('bert-large-uncased-whole-word-masking-finetuned-squad')
 
 def extract(text,date):
@@ -56,7 +56,7 @@ def extract(text,date):
         elif(keys[ind]=="date"):
             result[keys[ind]]=helper.getDate(answer,date)
         elif(keys[ind]=="names"):
-            result[keys[ind]]=helper.persons(answer)
+            result[keys[ind]]=helper.person_names(answer)
         else:
             result[keys[ind]]=answer.lower()
         # result[question]=answer

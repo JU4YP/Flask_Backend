@@ -11,4 +11,15 @@ headers = {
 
 response = requests.request("GET", url, headers=headers, params=querystring)
 
+
+
+
+querystring = {"q":"West Bengal Road Accident","textFormat":"Raw","safeSearch":"Off"}
+headers = {
+	"X-BingApis-SDK": "true",
+	"X-RapidAPI-Key": "65fe77868fmshbe3ee2d066d0354p1fc27ejsn668f405852c3",
+	"X-RapidAPI-Host": "bing-news-search1.p.rapidapi.com"
+}
+response = requests.request("GET", 	"https://bing-news-search1.p.rapidapi.com/news/search", headers=headers, params=querystring)
+
 print(response.json())

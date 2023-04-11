@@ -93,15 +93,18 @@ def fetch():
     return {"result":"success"}
 
 
-@app.route('/get',methods=['POST'])
+@app.route('/getFilteredData',methods=['POST'])
 def findData():
     db = cluster["metadata"]
     collection = db["roadaccidents"]
     date1=request.form.get("date1")
     date2=request.form.get("date2")
-    location=request.form.get("location")
-    print(date1,date2,location)
-    data=list(collection.find({"city":location,"date":{"$gte":date1,"$lte":date2}}))
+    state=request.form.get("state")
+    city=request.form.get("city")
+    print(date1,date2,state,city)
+    datetime1=datetime.strptime(date1, "%Y-%m-%d")
+    datetime2=datetime.strptime(date2, "%Y-%m-%d")
+    data=list(collection.find({"metadata.state":state,"metadata.city":city,"metadata.date":{"$gte":datetime1,"$lte":datetime2}}))
     return {"result":json.dumps(data, default=json_util.default)}
 
 @app.route('/extraction',methods=['POST'])
@@ -112,3 +115,13 @@ def extract():
     metadataExtracted=metadata.extract(text)
     return {"result":metadataExtracted}
     
+
+@app.route("/year",methods=['GET'])
+def  findYearWiseData():
+    db = cluster["metadata"]
+    collection = db["roadaccidents"]
+    data=collection.aggregate([{"$group": {"_id":{"$year":"$metadata.date"},"count": {"$count": {}}}}])
+    result=[]
+    for x in data:
+        result.append(x)
+    return result

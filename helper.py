@@ -19,22 +19,7 @@ weekdays = {
     "saturday":5,
     "sunday":0
 }
-def casualty_checker(str):
-    dead=0
-    arr=str.split(" ")
-    casualty=[]
-    for x in arr:
-        if x.isdigit():
-            casualty.append(int(x))
-        else:
-            y=x.lower()
-            for i in range(0,len(units)):
-                if y==units[i]:
-                    casualty.append(int(i))
-    if len(casualty)==1:
-        casualty.append(0)
-    return casualty
-print(casualty_checker("five killed, 752 injured in punjab road accidents"))
+
 
 def getDate(str,date_str):
     dateobj=datetime.strptime(date_str,"%Y-%m-%dT%H:%M:%S")
@@ -53,7 +38,7 @@ def getDate(str,date_str):
     dateobj=dateobj-timedelta(days=sub)
     return dateobj
 
-def persons(text):
+def person_names(text):
   # Get the news article from web using url
   # https://indianexpress.com/article/explained/in-mistry-crash-tragedy-a-reminder-of-high-numbers-of-road-deaths-in-the-country-8131214/
   # https://indianexpress.com/article/cities/mumbai/mumbai-7-injured-in-freak-car-accident-8165019/
@@ -72,5 +57,60 @@ def persons(text):
       print("Error")
   return persons
 
+def casualty_checker(text):
+  # Get the news article from web using url
+  numbers = []
+  try:
+
+    doc = nlp(text)
+
+    # Get the list of locations mentioned here
+    for word in doc.ents:
+      if(word.label_ == 'CARDINAL'):
+        numbers.append(word.text)
+    # Print location list4
+  except:
+    print("Error")
+  result=[]
+  for n in numbers:
+    if(n.isdigit()):
+        result.append(int(n))
+    else:
+        result.append(text2int(n))
+  return result
+        
+
+def text2int(textnum, numwords={}):
+    if not numwords:
+      units = [
+        "zero", "one", "two", "three", "four", "five", "six", "seven", "eight",
+        "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen",
+        "sixteen", "seventeen", "eighteen", "nineteen",
+      ]
+
+      tens = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"]
+
+      scales = ["hundred", "thousand"]
+
+      numwords["and"] = (1, 0)
+      for idx, word in enumerate(units):    numwords[word] = (1, idx)
+      for idx, word in enumerate(tens):     numwords[word] = (1, idx * 10)
+      for idx, word in enumerate(scales):   numwords[word] = (10 ** (idx * 3 or 2), 0)
+
+    current = result = 0
+    for word in textnum.split():
+        if word not in numwords:
+          raise Exception("Illegal word: " + word)
+
+        scale, increment = numwords[word]
+        current = current * scale + increment
+        if scale > 100:
+            result += current
+            current = 0
+
+    return result + current
+
+print(text2int("one hundred twenty seven"))
+
 # print(getDate("saturday","2023-03-29T14:52:30").date())
-# print(persons("The occupants were returning from a wedding in Jharkhand's Dhanbad district to their home at Panagarh in West Bengal when a speeding truck rammed into the car in which they were travelling. Asansol (West Bengal): In a tragic road accident, two people were killed and several others were severely injured after a speeding truck rammed into their car following which the car lost control and hit a divider on the National Highway 2 at Kalla More in Asansol of West Bengal's Paschim Bardhaman district, police said on Tuesday.According to the police, the occupants were returning from a wedding in Jharkhand's Dhanbad district to their home at Panagarh in West Bengal when a speeding truck rammed into the car in which they were travelling after which all the occupants, including the driver of the car, suffered serious injuries. The car was severely damaged, the police said.The police rushed to the spot and admitted the injured to Asansol District Hospital. Two have been declared brought dead whereas the others are undergoing treatment. The deceased have been identified as Anil Pandey (65), the groom's father, and Santosh Biswakarma (45), the driver of the car. The bodies will be handed over to the family after the post-mortem."))
+print(casualty_checker("12 dead, sixty seven people injured"))
