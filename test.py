@@ -26,4 +26,8 @@ def getRAPredictionFromTitle(title):
 # def getRAPredictionFromImage (images):
 #     predictions = image_model.predict(images)
 #     return predictions
+<<<<<<< Updated upstream
 print (getRAPredictionFromTitle('Road Accidents increase in India'))
+=======
+print (getRAPredictionFromTitle('At least 13 Killed in a Road Accident - Pratidin Time'))
+>>>>>>> Stashed changes

@@ -23,20 +23,23 @@ weekdays = {
 
 def getDate(str,date_str):
     dateobj=datetime.strptime(date_str,"%Y-%m-%dT%H:%M:%S")
-    day_report=dateobj.weekday()
-    arr=str.split(" ")
-    day=-1
-    for x in arr:
-        x=x.lower()
-        if x in weekdays:
-            day=weekdays[x]
-    sub=0
-    if(day_report>=day):
-        sub=day_report-day
-    else:
-        sub=day_report-day+7
-    dateobj=dateobj-timedelta(days=sub)
-    return dateobj
+    try:
+      day_report=dateobj.weekday()
+      arr=str.split(" ")
+      day=-1
+      for x in arr:
+          x=x.lower()
+          if x in weekdays:
+              day=weekdays[x]
+      sub=0
+      if(day_report>=day):
+          sub=day_report-day
+      else:
+          sub=day_report-day+7
+      dateobj=dateobj-timedelta(days=sub)
+      return dateobj
+    except:
+       return dateobj
 
 def person_names(text):
   # Get the news article from web using url
@@ -56,6 +59,7 @@ def person_names(text):
   except:
       print("Error")
   return persons
+
 
 def casualty_checker(text):
   # Get the news article from web using url
@@ -100,7 +104,7 @@ def text2int(textnum, numwords={}):
     current = result = 0
     for word in textnum.split():
         if word not in numwords:
-          raise Exception("Illegal word: " + word)
+          return 0
 
         scale, increment = numwords[word]
         current = current * scale + increment
@@ -113,4 +117,4 @@ def text2int(textnum, numwords={}):
 print(text2int("one hundred twenty seven"))
 
 # print(getDate("saturday","2023-03-29T14:52:30").date())
-print(casualty_checker("12 dead, sixty seven people injured"))
+# print(casualty("as many as 40"))

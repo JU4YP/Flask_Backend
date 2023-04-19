@@ -4,6 +4,8 @@ import requests
 from datetime import datetime
 import pymongo
 import metadata
+from tensorflow import keras
+
 
 from newspaper import Article
 
@@ -13,10 +15,11 @@ nltk.download('punkt')
 
 # Import spaCy
 import spacy
-import spacy_transformers
 
 # Load spaCy module for nlp
 nlp = spacy.load('en_core_web_trf')
+
+
 
 class SearchAPI:
 	def __init__(self,search_query):
@@ -89,7 +92,7 @@ def getKey(article,key):
     return ""
 
 def chngDateTimeFormat(dt_str: str):
-    from_format = "%Y-%m-%dT%H:%M:%S %Z"
+    from_format = "%Y-%m-%dT%H:%M:%S"
     dt = datetime.strptime(dt_str, from_format)
     to_format = "%Y-%m-%dT%H:%M:%S"
     return dt.strftime(to_format)
@@ -108,7 +111,8 @@ def extractArticle(article):
   extract['body'] = Summarizer(extract['url'])
   extract['date'] = getKey(article,'datePublished')
   extract['language'] = getKey(article,'language')
-  extract['metadata']=metadata.extract(extract['body'][:500],extract['date'])
+  extract['metadata']=metadata.extract(extract['body'][:1000],extract['date'])
+  extract['casualty']=metadata.extractFromTitle(extract['title'])
   if('image' in article.keys()):
     extract['image'] = getKey(article['image'],'url') 
   return extract
@@ -150,9 +154,10 @@ sapi=SearchAPI('West Bengal road accident')
 #     print()
 
 # article = sapi.GoogleNewsSearch()['news']['news'][0]
-# print(article)
-# extracted_article = extractGoogleArticle(article)
-# print(extracted_article["metadata"])
+
+article = sapi.WebSearch()['value'][1]
+extracted_article = extractArticle(article)
+print(extracted_article["metadata"])
 
 # pushToDB([extracted_article],sapi.myclient)
 
@@ -162,4 +167,4 @@ sapi=SearchAPI('West Bengal road accident')
 
 # pushToDB([extractGoogleArticle(article) for article in sapi.GoogleNewsSearch()['articles']], sapi.myclient)
 
-chngDateTimeFormat("2023-11-21T12:23:52.001Z")
+# chngDateTimeFormat("2023-11-21T12:23:52.001Z")
