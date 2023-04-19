@@ -81,8 +81,10 @@ def casualty_checker(text):
         result.append(int(n))
     else:
         result.append(text2int(n))
-  return result
-        
+  if len(result) > 0:
+    return result[0]
+  else:
+    return 0      
 
 def text2int(textnum, numwords={}):
     if not numwords:

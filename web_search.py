@@ -82,7 +82,7 @@ def Summarizer(url):
 
     # Print location list4
   except:
-      print("Error")
+      print("ERROR: Article cannot be processed by Spacy.")
   return new_accident.text
 
 def getKey(article,key):
@@ -123,6 +123,8 @@ def extractBingArticle(article):
   extract['title'] = getKey(article,'name')
   extract['body'] = Summarizer(extract['url'])
   extract['date'] = getKey(article,'datePublished')
+  extract['metadata']=metadata.extract(extract['body'][:1000],extract['date'][:19])
+  extract['casualty']=metadata.extractFromTitle(extract['title'])
   if('image' in article.keys() and 'thumbnail' in article['image'].keys()):
     extract['image'] = getKey(article['image']['thumbnail'],'contentUrl')
   return extract
@@ -155,11 +157,14 @@ sapi=SearchAPI('West Bengal road accident')
 
 # article = sapi.GoogleNewsSearch()['news']['news'][0]
 
-article = sapi.WebSearch()['value'][1]
-extracted_article = extractArticle(article)
-print(extracted_article["metadata"])
-
+# article = sapi.WebSearch()['value'][5]
+# extracted_article = extractArticle(article)
 # pushToDB([extracted_article],sapi.myclient)
+
+article = sapi.BingSearch()['value'][0]
+print(article)
+extracted_article = extractBingArticle(article)
+pushToDB([extracted_article],sapi.myclient)
 
 # pushToDB([extractArticle(article) for article in sapi.WebSearch()['value']], sapi.myclient)
 

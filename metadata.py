@@ -91,10 +91,11 @@ def extractFromTitle(text):
         answer = tokenizer.convert_tokens_to_string(answer)
 
         # Print the question and the answer
-        print(question)
-        print(answer)
-        result[title_keys[ind]]=answer
+        # print(question)
+        # print(answer)
+        result[title_keys[ind]]=helper.casualty_checker(answer)
         ind+=1
+    return result
 
 extractFromTitle("at least one person was killed and as many as 40 were inured")
 
