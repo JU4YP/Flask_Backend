@@ -104,7 +104,10 @@ def findData():
     print(date1,date2,state,city)
     datetime1=datetime.strptime(date1, "%Y-%m-%d")
     datetime2=datetime.strptime(date2, "%Y-%m-%d")
-    data=list(collection.find({"metadata.state":state,"metadata.city":city,"metadata.date":{"$gte":datetime1,"$lte":datetime2}}))
+    if(len(state)==0 and len(city)==0):
+        data=list(collection.find({"metadata.date":{"$gte":datetime1,"$lte":datetime2}}))
+    else:
+        data=list(collection.find({"metadata.state":state,"metadata.city":city,"metadata.date":{"$gte":datetime1,"$lte":datetime2}}))
     return {"result":json.dumps(data, default=json_util.default)}
 
 @app.route('/extraction',methods=['POST'])
@@ -125,3 +128,13 @@ def  findYearWiseData():
     for x in data:
         result.append(x)
     return result
+
+@app.route("/deaths",methods=['GET'])
+def  findYearWiseDeaths():
+    db = cluster["metadata"]
+    collection = db["roadaccidents"]
+    data=collection.aggregate([{"$group": {"_id":{"$year":"$metadata.date"},"deaths": {"$sum": "$metadata.dead"}}}])
+    result=[]
+    for x in data:
+        result.append(x)
+    return result                
