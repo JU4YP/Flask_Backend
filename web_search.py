@@ -6,6 +6,7 @@ import pymongo
 import metadata
 import traceback
 from tensorflow import keras
+import text_classifier
 
 
 from newspaper import Article
@@ -172,7 +173,16 @@ sapi=SearchAPI('West Bengal road accident')
 
 pushToDB([extractArticle(article) for article in sapi.WebSearch()['value']], sapi.myclient)
 
-pushToDB([extractBingArticle(article) for article in sapi.BingSearch()['value']], sapi.myclient)
+articles1=[]
+for article in sapi.WebSearch()['value']:
+    extracted_article=extractArticle(article)
+    flag=text_classifier.getRAPredictionFromTitle(extracted_article['title'])
+    if(flag==2):
+        articles1.append(extracted_article)
+    break
+pushToDB(articles1,sapi.myclient)
+
+# pushToDB([extractBingArticle(article) for article in sapi.BingSearch()['value']], sapi.myclient)
 
 # pushToDB([extractGoogleArticle(article) for article in sapi.GoogleNewsSearch()['articles']], sapi.myclient)
 

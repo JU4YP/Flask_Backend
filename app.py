@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request
 import tensorflow as tf
 from fileinput import filename
-import test
+import pandas as pd
 import os
 import numpy as np
 import json
@@ -25,7 +25,22 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 @app.route('/')
 def hello_world():
     return 'Hello World!'
-
+@app.route('/get',methods=['GET'])
+def get():
+    db = cluster["metadata"]
+    collection = db["roadaccidents"]
+    docs=list(collection.find({}))
+    rows=[]
+    for x in docs:
+        row=[]
+        if(len(x['body'])>0):
+            row.append(x['body'])
+            rows.append(row)
+ 
+    dict = {'document_text': rows}
+    df = pd.DataFrame(dict)
+    df.to_csv('doc.csv')
+    return "yoc"
 @app.route('/fetchAll',methods=['GET'])
 def getAllData():
     db = cluster["metadata"]
@@ -57,7 +72,7 @@ def home():
     data = request.json
     text = data['text']
     print(text)
-    return {"result" : int(test.getRAPredictionFromTitle(text))}
+    return {"result" : int(text_classifier.getRAPredictionFromTitle(text))}
     #return {"result" : str(text)}
 
 @app.route('/getRAPredictionFromImage', methods = ['POST'])
@@ -75,7 +90,7 @@ def success():
         pred_labels = []
         # testing_ds.
         for images, labels in testing_ds.take(1):
-            predictions = test.getRAPredictionFromImage(images)
+            predictions = text_classifier.getRAPredictionFromImage(images)
             predlabel = []
             print(labels.numpy())
             print(predictions)
