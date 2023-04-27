@@ -1,15 +1,15 @@
 from flask import Flask, render_template, request
-from keras.models import load_model
 import tensorflow as tf
 from fileinput import filename
 import test
 import os
 import numpy as np
-from PIL import Image
 import json
 from bson import json_util
-from datetime import datetime,timedelta
+from datetime import datetime
 import metadata
+import csv
+import pandas as pd
 
 app = Flask(__name__)
 
@@ -31,10 +31,26 @@ def getAllData():
     db = cluster["metadata"]
     collection = db["roadaccidents"]
     docs=list(collection.find({}))
-    dateobj=datetime.strptime(docs[0]['date'],"%Y-%m-%dT%H:%M:%S")
-    dateobj=dateobj-timedelta(days=1)
-    print(dateobj.weekday())
     return {"result":json.dumps(docs, default=json_util.default)}
+
+@app.route('/get',methods=['GET'])
+def get():
+    db = cluster["metadata"]
+    collection = db["roadaccidents"]
+    docs=list(collection.find({}))
+    rows=[]
+    for x in docs:
+        row=[]
+        if(len(x['body'])>0):
+            row.append(x['body'])
+            rows.append(row)
+ 
+    dict = {'document_text': rows}
+    df = pd.DataFrame(dict)
+    df.to_csv('doc.csv')
+    return "yoc"
+
+
 
 @app.route('/getRAPrediction', methods = ['GET'])
 def home():
@@ -104,8 +120,11 @@ def findData():
     print(date1,date2,state,city)
     datetime1=datetime.strptime(date1, "%Y-%m-%d")
     datetime2=datetime.strptime(date2, "%Y-%m-%d")
+    
     if(len(state)==0 and len(city)==0):
         data=list(collection.find({"metadata.date":{"$gte":datetime1,"$lte":datetime2}}))
+    elif(len(state)==0):
+        data=list(collection.find({"metadata.city":city,"metadata.date":{"$gte":datetime1,"$lte":datetime2}}))
     else:
         data=list(collection.find({"metadata.state":state,"metadata.city":city,"metadata.date":{"$gte":datetime1,"$lte":datetime2}}))
     return {"result":json.dumps(data, default=json_util.default)}
@@ -133,7 +152,7 @@ def  findYearWiseData():
 def  findYearWiseDeaths():
     db = cluster["metadata"]
     collection = db["roadaccidents"]
-    data=collection.aggregate([{"$group": {"_id":{"$year":"$metadata.date"},"deaths": {"$sum": "$metadata.dead"}}}])
+    data=collection.aggregate([{"$group": {"_id":{"$year":"$metadata.date"},"deaths": {"$sum": "$casualty.dead"}}}])
     result=[]
     for x in data:
         result.append(x)

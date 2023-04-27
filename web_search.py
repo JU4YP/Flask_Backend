@@ -4,6 +4,7 @@ import requests
 from datetime import datetime
 import pymongo
 import metadata
+import traceback
 from tensorflow import keras
 
 
@@ -58,7 +59,7 @@ class SearchAPI:
 		print(response)
 		return (response.json())
 
-def Summarizer(url):
+def Summarizer(url,body):
   # Get the news article from web using url
   # https://indianexpress.com/article/explained/in-mistry-crash-tragedy-a-reminder-of-high-numbers-of-road-deaths-in-the-country-8131214/
   # https://indianexpress.com/article/cities/mumbai/mumbai-7-injured-in-freak-car-accident-8165019/
@@ -81,8 +82,11 @@ def Summarizer(url):
         location_list.append(word.text)
 
     # Print location list4
-  except:
-      print("ERROR: Article cannot be processed by Spacy.")
+  except Exception:
+    traceback.print_exc()
+    print("ERROR: Article cannot be processed by Spacy.")
+  if(len(new_accident.text)==0):
+      return body
   return new_accident.text
 
 def getKey(article,key):
@@ -100,7 +104,7 @@ def chngDateTimeFormat(dt_str: str):
 def pushToDB(json_list : list, myclient):
 
   mydb = myclient["metadata"]
-  mycol = mydb["roadaccidents"]
+  mycol = mydb["roadaccidents2"]
 
   mycol.insert_many(json_list)
 
@@ -108,7 +112,7 @@ def extractArticle(article):
   extract={}
   extract['url'] = getKey(article,'url')
   extract['title'] = getKey(article,'title')
-  extract['body'] = Summarizer(extract['url'])
+  extract['body'] = Summarizer(extract['url'],getKey(article,'body'))
   extract['date'] = getKey(article,'datePublished')
   extract['language'] = getKey(article,'language')
   extract['metadata']=metadata.extract(extract['body'][:1000],extract['date'])
@@ -121,7 +125,7 @@ def extractBingArticle(article):
   extract={}
   extract['url'] = getKey(article,'url')
   extract['title'] = getKey(article,'name')
-  extract['body'] = Summarizer(extract['url'])
+  extract['body'] = Summarizer(extract['url'],getKey(article,'body'))
   extract['date'] = getKey(article,'datePublished')
   extract['metadata']=metadata.extract(extract['body'][:1000],extract['date'][:19])
   extract['casualty']=metadata.extractFromTitle(extract['title'])
@@ -134,7 +138,7 @@ def extractGoogleArticle(article):
   extract['url'] = getKey(article,'link')
   extract['title'] = getKey(article,'title')
   extract['date'] = chngDateTimeFormat(getKey(article,'published'))
-  extract['body']=Summarizer(extract['url'])
+  extract['body']=Summarizer(extract['url'],getKey(article,'body'))
   extract['metadata']=metadata.extract(extract['body'][:500],extract['date'])
   return extract
 
@@ -161,14 +165,14 @@ sapi=SearchAPI('West Bengal road accident')
 # extracted_article = extractArticle(article)
 # pushToDB([extracted_article],sapi.myclient)
 
-article = sapi.BingSearch()['value'][0]
-print(article)
-extracted_article = extractBingArticle(article)
-pushToDB([extracted_article],sapi.myclient)
+# article = sapi.BingSearch()['value'][0]
+# print(article)
+# extracted_article = extractBingArticle(article)
+# pushToDB([extracted_article],sapi.myclient)
 
-# pushToDB([extractArticle(article) for article in sapi.WebSearch()['value']], sapi.myclient)
+pushToDB([extractArticle(article) for article in sapi.WebSearch()['value']], sapi.myclient)
 
-# pushToDB([extractBingArticle(article) for article in sapi.BingSearch()['value']], sapi.myclient)
+pushToDB([extractBingArticle(article) for article in sapi.BingSearch()['value']], sapi.myclient)
 
 # pushToDB([extractGoogleArticle(article) for article in sapi.GoogleNewsSearch()['articles']], sapi.myclient)
 
