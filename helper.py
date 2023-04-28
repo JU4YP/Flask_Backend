@@ -61,6 +61,17 @@ def person_names(text):
   return persons
 
 
+from arcgis.gis import GIS
+from arcgis.geocoding import geocode
+
+portal = GIS("https://www.arcgis.com", api_key='AAPKa9fd7db94ebe44908731679772a6823cr-MqhywQzq2J9pSsC4g0nLzjpiHuNesRbswRwwKhiF97RtlqT52QTux1fU8dIj3N')
+
+def getLatLong(addr):
+  geocode_results = geocode(address=addr)
+  if(len(geocode_results)>0):
+    return geocode_results[0]['location']
+  return {'x':0,'y':0}
+
 def casualty_checker(text):
   # Get the news article from web using url
   numbers = []
@@ -116,7 +127,7 @@ def text2int(textnum, numwords={}):
 
     return result + current
 
-print(text2int("one hundred twenty seven"))
+print(getLatLong("Kolkata, West Bengal"))
 
 # print(getDate("saturday","2023-03-29T14:52:30").date())
 # print(casualty("as many as 40"))

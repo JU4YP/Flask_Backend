@@ -7,13 +7,14 @@ import numpy as np
 import json
 from bson import json_util
 from datetime import datetime
-import metadata
+# import metadata
 import csv
 import pandas as pd
 
 app = Flask(__name__)
 
 from pymongo import MongoClient
+import pymongo
 
 cluster = MongoClient("mongodb://Rishi:HDST12345@ac-fhuqmjw-shard-00-00.cwz7qiq.mongodb.net:27017,ac-fhuqmjw-shard-00-01.cwz7qiq.mongodb.net:27017,ac-fhuqmjw-shard-00-02.cwz7qiq.mongodb.net:27017/?ssl=true&replicaSet=atlas-i0sq4k-shard-0&authSource=admin&retryWrites=true&w=majority")
 
@@ -25,22 +26,6 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 @app.route('/')
 def hello_world():
     return 'Hello World!'
-@app.route('/get',methods=['GET'])
-def get():
-    db = cluster["metadata"]
-    collection = db["roadaccidents"]
-    docs=list(collection.find({}))
-    rows=[]
-    for x in docs:
-        row=[]
-        if(len(x['body'])>0):
-            row.append(x['body'])
-            rows.append(row)
- 
-    dict = {'document_text': rows}
-    df = pd.DataFrame(dict)
-    df.to_csv('doc.csv')
-    return "yoc"
 @app.route('/fetchAll',methods=['GET'])
 def getAllData():
     db = cluster["metadata"]
@@ -137,20 +122,20 @@ def findData():
     datetime2=datetime.strptime(date2, "%Y-%m-%d")
     
     if(len(state)==0 and len(city)==0):
-        data=list(collection.find({"metadata.date":{"$gte":datetime1,"$lte":datetime2}}))
+        data=list(collection.find({"metadata.date":{"$gte":datetime1,"$lte":datetime2}}).sort("metadata.date",pymongo.ASCENDING))
     elif(len(state)==0):
-        data=list(collection.find({"metadata.city":city,"metadata.date":{"$gte":datetime1,"$lte":datetime2}}))
+        data=list(collection.find({"metadata.city":city,"metadata.date":{"$gte":datetime1,"$lte":datetime2}}).sort("metadata.date",pymongo.ASCENDING))
     else:
-        data=list(collection.find({"metadata.state":state,"metadata.city":city,"metadata.date":{"$gte":datetime1,"$lte":datetime2}}))
+        data=list(collection.find({"metadata.state":state,"metadata.city":city,"metadata.date":{"$gte":datetime1,"$lte":datetime2}}).sort("metadata.date",pymongo.ASCENDING))
     return {"result":json.dumps(data, default=json_util.default)}
 
-@app.route('/extraction',methods=['POST'])
-def extract():
-    db = cluster["metadata"]
-    collection = db["roadaccidents"]
-    text=request.form.get("text")
-    metadataExtracted=metadata.extract(text)
-    return {"result":metadataExtracted}
+# @app.route('/extraction',methods=['POST'])
+# def extract():
+#     db = cluster["metadata"]
+#     collection = db["roadaccidents"]
+#     text=request.form.get("text")
+#     metadataExtracted=metadata.extract(text)
+#     return {"result":metadataExtracted}
     
 
 @app.route("/year",methods=['GET'])

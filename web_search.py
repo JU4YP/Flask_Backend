@@ -7,6 +7,7 @@ import metadata
 import traceback
 from tensorflow import keras
 import text_classifier
+import helper
 
 
 from newspaper import Article
@@ -105,7 +106,7 @@ def chngDateTimeFormat(dt_str: str):
 def pushToDB(json_list : list, myclient):
 
   mydb = myclient["metadata"]
-  mycol = mydb["roadaccidents2"]
+  mycol = mydb["roadaccidents"]
 
   mycol.insert_many(json_list)
 
@@ -118,6 +119,7 @@ def extractArticle(article):
   extract['language'] = getKey(article,'language')
   extract['metadata']=metadata.extract(extract['body'][:1000],extract['date'])
   extract['casualty']=metadata.extractFromTitle(extract['title'])
+  extract['geolocation']=helper.getLatLong(extract['metadata']['city']+','+extract['metadata']['state'])
   if('image' in article.keys()):
     extract['image'] = getKey(article['image'],'url') 
   return extract
@@ -143,7 +145,7 @@ def extractGoogleArticle(article):
   extract['metadata']=metadata.extract(extract['body'][:500],extract['date'])
   return extract
 
-sapi=SearchAPI('West Bengal road accident')
+sapi=SearchAPI('West Bengal Road Accident')
 
 # for article in sapi.WebSearch()['value']:
 #   extract = extractArticle(article)
@@ -171,7 +173,7 @@ sapi=SearchAPI('West Bengal road accident')
 # extracted_article = extractBingArticle(article)
 # pushToDB([extracted_article],sapi.myclient)
 
-pushToDB([extractArticle(article) for article in sapi.WebSearch()['value']], sapi.myclient)
+# pushToDB([extractArticle(article) for article in sapi.WebSearch()['value']], sapi.myclient)
 
 articles1=[]
 for article in sapi.WebSearch()['value']:
@@ -179,7 +181,7 @@ for article in sapi.WebSearch()['value']:
     flag=text_classifier.getRAPredictionFromTitle(extracted_article['title'])
     if(flag==2):
         articles1.append(extracted_article)
-    break
+        break
 pushToDB(articles1,sapi.myclient)
 
 # pushToDB([extractBingArticle(article) for article in sapi.BingSearch()['value']], sapi.myclient)
