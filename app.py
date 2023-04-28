@@ -8,6 +8,7 @@ import json
 from bson import json_util
 from datetime import datetime
 # import metadata
+import helper
 import csv
 import pandas as pd
 
@@ -112,7 +113,7 @@ def fetch():
 @app.route('/getFilteredData',methods=['POST'])
 def findData():
     db = cluster["metadata"]
-    collection = db["roadaccidents"]
+    collection = db["roadaccidents3"]
     date1=request.form.get("date1")
     date2=request.form.get("date2")
     state=request.form.get("state")
@@ -157,3 +158,16 @@ def  findYearWiseDeaths():
     for x in data:
         result.append(x)
     return result                
+
+@app.route('/transfer',methods=['GET'])
+def transferData():
+    db = cluster["metadata"]
+    collection1 = db["roadaccidents2"]
+    collection2 = db["roadaccidents3"]
+    docs=list(collection1.find({}))
+    for d in docs:
+        addr=d['metadata']['city']+','+d['metadata']['state']
+        geocoords=helper.getLatLong(addr[:180])
+        d['geolocation']=geocoords
+        collection2.insert_one(d)
+    return "yo"
