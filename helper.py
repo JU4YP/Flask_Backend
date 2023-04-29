@@ -68,15 +68,11 @@ from arcgis.gis import GIS
 from arcgis.geocoding import geocode
 
 portal = GIS("https://www.arcgis.com", api_key='AAPKa9fd7db94ebe44908731679772a6823cr-MqhywQzq2J9pSsC4g0nLzjpiHuNesRbswRwwKhiF97RtlqT52QTux1fU8dIj3N')
-api_key='AAPKa9fd7db94ebe44908731679772a6823cr-MqhywQzq2J9pSsC4g0nLzjpiHuNesRbswRwwKhiF97RtlqT52QTux1fU8dIj3N'
 
 def getLatLong(addr):
   geocode_results = geocode(address=addr)
-  x=requests.get('https://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates',{'f':'pjson','address':addr,'token':api_key})
-  result=x.text
-  result=json.loads(result)
-  if(len(result['candidates'])>0):
-    return result['candidates'][0]['location']
+  if(len(geocode_results)>0):
+    return geocode_results[0]['location']
   return {'x':77.1025,'y':28.7041}
 
 def casualty_checker(text):
