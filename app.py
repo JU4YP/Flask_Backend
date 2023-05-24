@@ -8,10 +8,7 @@ import json
 from bson import json_util
 from datetime import datetime
 # import metadata
-<<<<<<< HEAD
 import helper
-=======
->>>>>>> e3fa4b4 (uo)
 import csv
 import pandas as pd
 
@@ -145,7 +142,7 @@ def findData():
 @app.route("/year",methods=['GET'])
 def  findYearWiseData():
     db = cluster["metadata"]
-    collection = db["roadaccidents"]
+    collection = db["roadaccidents3"]
     data=collection.aggregate([{"$group": {"_id":{"$year":"$metadata.date"},"count": {"$count": {}}}}])
     result=[]
     for x in data:
@@ -155,9 +152,19 @@ def  findYearWiseData():
 @app.route("/deaths",methods=['GET'])
 def  findYearWiseDeaths():
     db = cluster["metadata"]
-    collection = db["roadaccidents"]
+    collection = db["roadaccidents3"]
     data=collection.aggregate([{"$group": {"_id":{"$year":"$metadata.date"},"deaths": {"$sum": "$casualty.dead"}}}])
     result=[]
     for x in data:
         result.append(x)
-    return result                
+    return result      
+
+@app.route("/state",methods=['GET'])
+def  findStateWiseAccidents():
+    db = cluster["metadata"]
+    collection = db["roadaccidents3"]
+    data=collection.aggregate([{"$group": {"_id":"$metadata.state","count": {"$count": {}}}}]])
+    result=[]
+    for x in data:
+        result.append(x)
+    return result           

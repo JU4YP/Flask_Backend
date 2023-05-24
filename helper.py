@@ -67,7 +67,6 @@ def person_names(text):
 api_key='AAPKa9fd7db94ebe44908731679772a6823cr-MqhywQzq2J9pSsC4g0nLzjpiHuNesRbswRwwKhiF97RtlqT52QTux1fU8dIj3N'
 
 def getLatLong(addr):
-  geocode_results = geocode(address=addr)
   x=requests.get('https://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates',{'f':'pjson','address':addr,'token':api_key})
   result=x.text
   result=json.loads(result)

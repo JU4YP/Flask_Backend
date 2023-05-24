@@ -13,7 +13,7 @@ trunc_type = 'post'
 with open('tokenizer.pickle', 'rb') as handle:
     tokenizer = pickle.load(handle)
 
-model = tf.keras.models.load_model('accidents_lstm_2.h5')
+model = tf.keras.models.load_model('accidents_classifier.h5')
 
 # image_model = load_model('Model.h5')
 
